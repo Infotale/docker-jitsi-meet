@@ -17,8 +17,6 @@ RUN apt-dpkg-wrap apt-get update && \
     rm -f /etc/nginx/conf.d/default.conf && \
     apt-cleanup
 
-COPY rootfs/custom-files/images/watermark.svg /usr/share/jitsi-meet/images/watermark.svg
-
 EXPOSE 80 443
 
 VOLUME ["/config", "/usr/share/jitsi-meet/transcripts"]
