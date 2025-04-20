@@ -1,22 +1,24 @@
-ARG JITSI_REPO=jitsi
-ARG BASE_TAG=latest
-FROM ${JITSI_REPO}/base:${BASE_TAG}
-
-LABEL org.opencontainers.image.title="Jitsi Meet"
-LABEL org.opencontainers.image.description="WebRTC compatible JavaScript application that uses Jitsi Videobridge to provide high quality, scalable video conferences."
-LABEL org.opencontainers.image.url="https://jitsi.org/jitsi-meet/"
-LABEL org.opencontainers.image.source="https://github.com/jitsi/docker-jitsi-meet"
-LABEL org.opencontainers.image.documentation="https://jitsi.github.io/handbook/"
-
-ADD https://raw.githubusercontent.com/acmesh-official/acme.sh/3.0.7/acme.sh /opt
-COPY rootfs/ /
-
+# Install build deps + runtime deps
 RUN apt-dpkg-wrap apt-get update && \
-    apt-dpkg-wrap apt-get install -y dnsutils cron nginx-extras jitsi-meet-web socat curl jq && \
-    mv /usr/share/jitsi-meet/interface_config.js /defaults && \
+    apt-dpkg-wrap apt-get install -y \
+      dnsutils cron nginx-extras socat curl jq \
+      git make nodejs npm gnupg ca-certificates && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-dpkg-wrap apt-get install -y nodejs && \
     rm -f /etc/nginx/conf.d/default.conf && \
     apt-cleanup
 
-EXPOSE 80 443
+# Clone and build jitsi-meet from source
+WORKDIR /tmp/jitsi-meet
+RUN git clone https://github.com/Infotale/jitsi-meet.git . && \
+    npm install && \
+    make
 
-VOLUME ["/config", "/usr/share/jitsi-meet/transcripts"]
+# Copy build into final location
+RUN rm -rf /usr/share/jitsi-meet && \
+    mkdir -p /usr/share/jitsi-meet && \
+    cp -r /tmp/jitsi-meet/build/* /usr/share/jitsi-meet/
+
+# Save default config for later fallback
+RUN mkdir -p /defaults && \
+    cp /usr/share/jitsi-meet/interface_config.js /defaults/interface_config.js
