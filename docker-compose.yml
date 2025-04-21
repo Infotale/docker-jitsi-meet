@@ -16,6 +16,8 @@ services:
             - ./custom-files/config.js:/config/config.js:ro
             - ./custom-files/interface_config.js:/config/interface_config.js:ro
             - ./custom-files/watermark.svg:/usr/share/jitsi-meet/images/watermark.svg:ro
+            - ./custom-files/custom-title-change.js:/usr/share/jitsi-meet/custom-title-change.js
+            - ./custom-files/index.html:/usr/share/jitsi-meet/index.html
         labels:
             service: "jitsi-web"
         environment:
